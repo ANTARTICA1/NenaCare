@@ -59,17 +59,14 @@ $tableLaporan = "CREATE TABLE IF NOT EXISTS laporan_k3 (
 )";
 $db->query($tableLaporan);
 
-// Alter existing table if columns exist as NOT NULL (migration for existing installs)
 $db->query("ALTER TABLE laporan_k3 MODIFY COLUMN nama_pelapor VARCHAR(100) NULL");
 $db->query("ALTER TABLE laporan_k3 MODIFY COLUMN tipe_pelapor VARCHAR(20) NULL");
 
-// Add is_anonim column if not exists
 $colCheck = $db->query("SHOW COLUMNS FROM laporan_k3 LIKE 'is_anonim'");
 if ($colCheck && $colCheck->num_rows === 0) {
     $db->query("ALTER TABLE laporan_k3 ADD COLUMN is_anonim TINYINT(1) DEFAULT 0 AFTER deskripsi_kejadian");
 }
 
-// Table for admin notes on report detail
 $tableCatatan = "CREATE TABLE IF NOT EXISTS catatan_admin (
   id_catatan INT AUTO_INCREMENT PRIMARY KEY,
   id_laporan INT NOT NULL,
@@ -79,7 +76,6 @@ $tableCatatan = "CREATE TABLE IF NOT EXISTS catatan_admin (
 )";
 $db->query($tableCatatan);
 
-// Seed default admin user if no users exist
 $userCount = $db->query("SELECT COUNT(*) as cnt FROM users")->fetch_assoc()['cnt'];
 if ($userCount == 0) {
     $defaultUser = 'admin';

@@ -12,7 +12,6 @@ $auth->requireLogin();
 
 $manager = new ReportManager($db);
 
-// Get filter values
 $filters = [];
 if (!empty($_GET['status'])) $filters['status'] = $_GET['status'];
 if (!empty($_GET['kategori'])) $filters['kategori'] = $_GET['kategori'];
@@ -23,7 +22,6 @@ if (!empty($_GET['tanggal_sampai'])) $filters['tanggal_sampai'] = $_GET['tanggal
 $reports = $manager->getFilteredReports($filters);
 $stats = $manager->getStatistics();
 
-// Build filter description
 $filterDesc = [];
 if (!empty($filters['status'])) $filterDesc[] = "Status: " . $filters['status'];
 if (!empty($filters['kategori'])) $filterDesc[] = "Kategori: " . $filters['kategori'];
@@ -34,7 +32,6 @@ $filterText = empty($filterDesc) ? 'Semua Data' : implode(' | ', $filterDesc);
 
 $tanggalCetak = date('d M Y, H:i');
 
-// Build HTML for PDF
 $html = '
 <!DOCTYPE html>
 <html>
@@ -255,7 +252,6 @@ $html .= '
 </body>
 </html>';
 
-// Generate PDF
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);
 $options->set('isPhpEnabled', false);

@@ -4,7 +4,7 @@
 require_once 'config.php';
 
 echo "==============================================\n";
-echo "🤖 CampusCare Telegram Bot Listener Berjalan!\n";
+echo "NenaCare Telegram Bot Listener Berjalan!\n";
 echo "Menunggu interaksi dari admin melalui Telegram...\n";
 echo "Tekan Ctrl+C untuk berhenti.\n";
 echo "==============================================\n";
@@ -49,7 +49,7 @@ while (true) {
 
                             $originalText = $callbackQuery['message']['text'];
                             
-                            $newText = $originalText . "\n\n✔️ *Status Saat Ini:* " . $status;
+                            $newText = $originalText . "\n\n*Status Saat Ini:* " . $status;
 
                             $editUrl = "https://api.telegram.org/bot" . BOT_TOKEN . "/editMessageText";
                             $editData = [

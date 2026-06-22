@@ -23,7 +23,6 @@ if (!$report) {
 
 $noteMessage = '';
 
-// Handle status update (admin only)
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'update_status') {
         $newStatus = $_POST['status'];
@@ -41,7 +40,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])
     }
 }
 
-// Refresh report data after potential update
 $report = $manager->getReportById($id);
 $notes = $manager->getNotesByReport($id);
 
@@ -57,7 +55,6 @@ $statusBadge = 'badge-menunggu';
 if ($report['status'] === 'Diproses') $statusBadge = 'badge-diproses';
 elseif ($report['status'] === 'Selesai') $statusBadge = 'badge-selesai';
 
-// Timeline logic
 $timelineLapor = date('d M Y, H:i', strtotime($report['waktu_lapor']));
 $statusVal = $report['status'];
 ?>
@@ -77,7 +74,7 @@ $statusVal = $report['status'];
 <div class="shape shape-2"></div>
 
 <?php if ($isAdmin): ?>
-<!-- Navbar for admin -->
+
 <nav class="navbar">
     <a href="admin.php" class="nav-brand"><i class="bi bi-shield-check"></i> NenaCare</a>
     <ul class="nav-links">
@@ -97,7 +94,6 @@ $statusVal = $report['status'];
 
 <div class="detail-wrapper" style="animation: fadeInUp 0.5s ease;">
 
-    <!-- Success messages -->
     <?php if (isset($_GET['updated'])): ?>
         <div class="glass-alert success" style="margin-bottom: 1.5rem;"><i class="bi bi-check-circle-fill"></i> Status berhasil diperbarui!</div>
     <?php endif; ?>
@@ -105,12 +101,10 @@ $statusVal = $report['status'];
         <div class="glass-alert success" style="margin-bottom: 1.5rem;"><i class="bi bi-check-circle-fill"></i> Catatan berhasil ditambahkan!</div>
     <?php endif; ?>
 
-    <!-- Back button -->
     <div style="margin-bottom: 1.5rem;">
         <a href="<?= $isAdmin ? 'admin.php' : 'index.php' ?>" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Kembali</a>
     </div>
 
-    <!-- Header -->
     <div class="glass-panel" style="margin-bottom: 1.5rem;">
         <div class="detail-header">
             <div>
@@ -125,7 +119,6 @@ $statusVal = $report['status'];
             </div>
         </div>
 
-        <!-- Details Grid -->
         <div class="detail-grid">
             <div class="detail-item">
                 <label><i class="bi bi-person-fill"></i> Pelapor</label>
@@ -144,8 +137,6 @@ $statusVal = $report['status'];
                 <span><?= date('d M Y, H:i:s', strtotime($report['waktu_lapor'])) ?></span>
             </div>
         </div>
-
-        <!-- Description -->
         <div style="margin-top: 0.5rem;">
             <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;"><i class="bi bi-chat-text-fill"></i> Deskripsi Kejadian</label>
             <div class="rc-desc" style="margin-bottom: 0;">
@@ -154,7 +145,6 @@ $statusVal = $report['status'];
         </div>
     </div>
 
-    <!-- AI Analysis -->
     <div class="glass-panel" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(79, 172, 254, 0.03), rgba(79, 172, 254, 0.06)); border-color: rgba(79, 172, 254, 0.15);">
         <h2 class="panel-heading" style="color: var(--primary);"><i class="bi bi-robot"></i> Analisis AI <span class="badge <?= $prioBadge ?>" style="margin-left: 8px;"><?= htmlspecialchars($report['prioritas']) ?></span></h2>
         <p style="font-size: 1.05rem; line-height: 1.7; color: var(--text-main); margin: 0;">
@@ -162,9 +152,7 @@ $statusVal = $report['status'];
         </p>
     </div>
 
-    <!-- Timeline & Status Update -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-        <!-- Timeline -->
         <div class="glass-panel">
             <h2 class="panel-heading"><i class="bi bi-clock-history"></i> Timeline Status</h2>
             <div class="timeline">
@@ -186,7 +174,6 @@ $statusVal = $report['status'];
             </div>
         </div>
 
-        <!-- Status Update (admin only) -->
         <div class="glass-panel">
             <h2 class="panel-heading"><i class="bi bi-pencil-square"></i> Ubah Status</h2>
             <?php if ($isAdmin): ?>
@@ -209,7 +196,6 @@ $statusVal = $report['status'];
         </div>
     </div>
 
-    <!-- Admin Notes -->
     <div class="glass-panel">
         <h2 class="panel-heading"><i class="bi bi-journal-text"></i> Catatan Admin</h2>
 

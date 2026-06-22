@@ -4,7 +4,6 @@ require_once 'classes/AuthManager.php';
 
 $auth = new AuthManager($db);
 
-// If already logged in, redirect to admin
 if ($auth->isLoggedIn()) {
     header('Location: admin.php');
     exit;

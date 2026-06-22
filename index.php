@@ -107,7 +107,6 @@ $reports = $manager->getAllReports();
             <h2 class="panel-heading"><i class="bi bi-broadcast-pin"></i> Lapor Insiden</h2>
             <form method="POST" action="" id="reportForm">
                 
-                <!-- Anonymous Checkbox -->
                 <label class="checkbox-wrapper" for="is_anonim">
                     <input type="checkbox" id="is_anonim" name="is_anonim" value="1">
                     <div class="checkbox-label">
