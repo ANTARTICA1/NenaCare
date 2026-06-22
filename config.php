@@ -45,11 +45,12 @@ $db->query($tableUsers);
 
 $tableLaporan = "CREATE TABLE IF NOT EXISTS laporan_k3 (
   id_laporan INT AUTO_INCREMENT PRIMARY KEY,
-  nama_pelapor VARCHAR(100) NOT NULL,
-  tipe_pelapor ENUM('Customer','Staf Kafe') NOT NULL,
+  nama_pelapor VARCHAR(100) NULL,
+  tipe_pelapor VARCHAR(20) NULL,
   kategori_masalah VARCHAR(50) NOT NULL,
   lokasi_kejadian VARCHAR(100) NOT NULL,
   deskripsi_kejadian TEXT NOT NULL,
+  is_anonim TINYINT(1) DEFAULT 0,
   prioritas ENUM('Rendah','Normal','Tinggi') DEFAULT 'Normal',
   saran_ai TEXT,
   status ENUM('Menunggu','Diproses','Selesai') DEFAULT 'Menunggu',
@@ -57,4 +58,35 @@ $tableLaporan = "CREATE TABLE IF NOT EXISTS laporan_k3 (
   waktu_lapor TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )";
 $db->query($tableLaporan);
+
+// Alter existing table if columns exist as NOT NULL (migration for existing installs)
+$db->query("ALTER TABLE laporan_k3 MODIFY COLUMN nama_pelapor VARCHAR(100) NULL");
+$db->query("ALTER TABLE laporan_k3 MODIFY COLUMN tipe_pelapor VARCHAR(20) NULL");
+
+// Add is_anonim column if not exists
+$colCheck = $db->query("SHOW COLUMNS FROM laporan_k3 LIKE 'is_anonim'");
+if ($colCheck && $colCheck->num_rows === 0) {
+    $db->query("ALTER TABLE laporan_k3 ADD COLUMN is_anonim TINYINT(1) DEFAULT 0 AFTER deskripsi_kejadian");
+}
+
+// Table for admin notes on report detail
+$tableCatatan = "CREATE TABLE IF NOT EXISTS catatan_admin (
+  id_catatan INT AUTO_INCREMENT PRIMARY KEY,
+  id_laporan INT NOT NULL,
+  id_user INT NOT NULL,
+  catatan TEXT NOT NULL,
+  waktu_catatan TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
+$db->query($tableCatatan);
+
+// Seed default admin user if no users exist
+$userCount = $db->query("SELECT COUNT(*) as cnt FROM users")->fetch_assoc()['cnt'];
+if ($userCount == 0) {
+    $defaultUser = 'admin';
+    $defaultPass = password_hash('admin123', PASSWORD_DEFAULT);
+    $defaultRole = 'Admin';
+    $stmt = $db->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $defaultUser, $defaultPass, $defaultRole);
+    $stmt->execute();
+}
 ?>
