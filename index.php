@@ -169,7 +169,7 @@ $reports = $manager->getAllReports();
                         else if($r['prioritas'] == 'Rendah') $prioBadge = 'badge-rendah';
                         
                         $isAnonim = isset($r['is_anonim']) && $r['is_anonim'];
-                        $displayName = $isAnonim ? '🕵️ Anonim' : htmlspecialchars($r['nama_pelapor']);
+                        $displayName = $isAnonim ? 'Anonim' : htmlspecialchars($r['nama_pelapor']);
                         $displayType = $isAnonim ? 'Identitas Dirahasiakan' : htmlspecialchars($r['tipe_pelapor']);
 
                         $delay += 0.1;

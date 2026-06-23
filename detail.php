@@ -44,7 +44,7 @@ $report = $manager->getReportById($id);
 $notes = $manager->getNotesByReport($id);
 
 $isAnonim = isset($report['is_anonim']) && $report['is_anonim'];
-$displayName = $isAnonim ? '🕵️ Pelapor Anonim' : htmlspecialchars($report['nama_pelapor'] ?? '-');
+$displayName = $isAnonim ? 'Pelapor Anonim' : htmlspecialchars($report['nama_pelapor'] ?? '-');
 $displayType = $isAnonim ? 'Identitas Dirahasiakan' : htmlspecialchars($report['tipe_pelapor'] ?? '-');
 
 $prioBadge = 'badge-normal';

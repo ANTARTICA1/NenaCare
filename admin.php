@@ -177,7 +177,7 @@ $exportUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
                     <?php else: ?>
                         <?php foreach ($reports as $r): 
                             $isAnonim = isset($r['is_anonim']) && $r['is_anonim'];
-                            $displayName = $isAnonim ? '🕵️ Anonim' : htmlspecialchars($r['nama_pelapor'] ?? '-');
+                            $displayName = $isAnonim ? 'Anonim' : htmlspecialchars($r['nama_pelapor'] ?? '-');
                             
                             $prioBadge = 'badge-normal';
                             if ($r['prioritas'] === 'Tinggi') $prioBadge = 'badge-tinggi';

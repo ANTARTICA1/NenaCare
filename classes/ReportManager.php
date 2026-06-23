@@ -144,8 +144,6 @@ Format:
         return $reports;
     }
 
-    // ===================== NEW METHODS =====================
-
     public function getReportById($id) {
         $stmt = $this->db->prepare("SELECT * FROM laporan_k3 WHERE id_laporan = ?");
         $stmt->bind_param("i", $id);
@@ -181,14 +179,12 @@ Format:
         $res = $this->db->query("SELECT COUNT(*) as c FROM laporan_k3 WHERE prioritas='Tinggi'");
         $stats['tinggi'] = $res->fetch_assoc()['c'];
 
-        // Distribution by category
         $res = $this->db->query("SELECT kategori_masalah, COUNT(*) as c FROM laporan_k3 GROUP BY kategori_masalah ORDER BY c DESC");
         $stats['by_kategori'] = [];
         while ($row = $res->fetch_assoc()) {
             $stats['by_kategori'][] = $row;
         }
 
-        // Distribution by status
         $res = $this->db->query("SELECT status, COUNT(*) as c FROM laporan_k3 GROUP BY status");
         $stats['by_status'] = [];
         while ($row = $res->fetch_assoc()) {
