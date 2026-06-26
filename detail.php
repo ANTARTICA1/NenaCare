@@ -24,9 +24,11 @@ if (!$report) {
 $noteMessage = '';
 
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'update_status') {
+    if ($_POST['action'] === 'update_details') {
         $newStatus = $_POST['status'];
+        $newPriority = $_POST['priority'];
         $manager->updateStatus($id, $newStatus);
+        $manager->updatePriority($id, $newPriority);
         header("Location: detail.php?id=$id&updated=1");
         exit;
     }
@@ -175,10 +177,10 @@ $statusVal = $report['status'];
         </div>
 
         <div class="glass-panel">
-            <h2 class="panel-heading"><i class="bi bi-pencil-square"></i> Ubah Status</h2>
+            <h2 class="panel-heading"><i class="bi bi-pencil-square"></i> Ubah Status & Prioritas</h2>
             <?php if ($isAdmin): ?>
                 <form method="POST" action="">
-                    <input type="hidden" name="action" value="update_status">
+                    <input type="hidden" name="action" value="update_details">
                     <div class="form-group">
                         <label class="form-label">Status Saat Ini</label>
                         <select name="status" class="form-control">
@@ -187,7 +189,15 @@ $statusVal = $report['status'];
                             <option value="Selesai" <?= $report['status'] === 'Selesai' ? 'selected' : '' ?>>✅ Selesai</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100;"><i class="bi bi-check2-circle"></i> Update Status</button>
+                    <div class="form-group">
+                        <label class="form-label">Prioritas Saat Ini</label>
+                        <select name="priority" class="form-control">
+                            <option value="Tinggi" <?= $report['prioritas'] === 'Tinggi' ? 'selected' : '' ?>>🔴 Tinggi</option>
+                            <option value="Normal" <?= $report['prioritas'] === 'Normal' ? 'selected' : '' ?>>🟡 Normal</option>
+                            <option value="Rendah" <?= $report['prioritas'] === 'Rendah' ? 'selected' : '' ?>>🟢 Rendah</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="bi bi-check2-circle"></i> Update Data</button>
                 </form>
             <?php else: ?>
                 <p style="color: var(--text-muted); font-size: 0.95rem;"><i class="bi bi-lock-fill"></i> Login sebagai admin untuk mengubah status.</p>

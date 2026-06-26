@@ -17,6 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_priority') {
+    $id = intval($_POST['id']);
+    $priority = $_POST['priority'];
+    $result = $manager->updatePriority($id, $priority);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $result]);
+    exit;
+}
+
 $stats = $manager->getStatistics();
 
 $filters = [];
@@ -192,7 +201,13 @@ $exportUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
                             <td><?= $displayName ?></td>
                             <td><?= htmlspecialchars($r['kategori_masalah']) ?></td>
                             <td><?= htmlspecialchars($r['lokasi_kejadian']) ?></td>
-                            <td><span class="badge <?= $prioBadge ?>"><?= htmlspecialchars($r['prioritas']) ?></span></td>
+                            <td>
+                                <select class="status-select" data-id="<?= $r['id_laporan'] ?>" onchange="updatePriority(this)">
+                                    <option value="Tinggi" <?= $r['prioritas'] === 'Tinggi' ? 'selected' : '' ?>>🔴 Tinggi</option>
+                                    <option value="Normal" <?= $r['prioritas'] === 'Normal' ? 'selected' : '' ?>>🟡 Normal</option>
+                                    <option value="Rendah" <?= $r['prioritas'] === 'Rendah' ? 'selected' : '' ?>>🟢 Rendah</option>
+                                </select>
+                            </td>
                             <td>
                                 <select class="status-select" data-id="<?= $r['id_laporan'] ?>" onchange="updateStatus(this)">
                                     <option value="Menunggu" <?= $r['status'] === 'Menunggu' ? 'selected' : '' ?>>⏳ Menunggu</option>
@@ -312,6 +327,27 @@ function updateStatus(selectEl) {
             setTimeout(() => { selectEl.style.boxShadow = 'none'; }, 1000);
         } else {
             alert('Gagal mengubah status.');
+        }
+    })
+    .catch(() => alert('Error koneksi.'));
+}
+
+function updatePriority(selectEl) {
+    const id = selectEl.dataset.id;
+    const priority = selectEl.value;
+
+    fetch('admin.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=update_priority&id=${id}&priority=${encodeURIComponent(priority)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            selectEl.style.boxShadow = '0 0 12px rgba(0, 242, 254, 0.4)';
+            setTimeout(() => { selectEl.style.boxShadow = 'none'; }, 1000);
+        } else {
+            alert('Gagal mengubah prioritas.');
         }
     })
     .catch(() => alert('Error koneksi.'));

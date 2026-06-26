@@ -161,6 +161,15 @@ Format:
         return $stmt->execute();
     }
 
+    public function updatePriority($id, $priority) {
+        $allowed = ['Tinggi', 'Normal', 'Rendah'];
+        if (!in_array($priority, $allowed)) return false;
+
+        $stmt = $this->db->prepare("UPDATE laporan_k3 SET prioritas = ? WHERE id_laporan = ?");
+        $stmt->bind_param("si", $priority, $id);
+        return $stmt->execute();
+    }
+
     public function getStatistics() {
         $stats = [];
 
