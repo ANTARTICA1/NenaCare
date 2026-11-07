@@ -1,6 +1,10 @@
 # NenaCare - AI-Powered K3 Incident Reporting & Monitoring System
 
-A full-stack incident reporting and Occupational Health and Safety (K3) monitoring platform tailored for the Food and Beverage (F&B) industry. The system integrates Google Gemini AI for automated hazard risk evaluation, Telegram Bot for real-time alerts and remote status dispatching, interactive Chart.js analytics, and automated PDF compliance reporting.
+A full-stack incident reporting and Occupational Health and Safety (K3) monitoring platform tailored for the Food and Beverage (F&B) industry.
+
+## Interface Preview
+
+![NenaCare Incident Monitoring Dashboard](assets/nenacare.jpg) The system integrates Google Gemini AI for automated hazard risk evaluation, Telegram Bot for real-time alerts and remote status dispatching, interactive Chart.js analytics, and automated PDF compliance reporting.
 
 ## System Overview
 
