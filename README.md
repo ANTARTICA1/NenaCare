@@ -4,7 +4,7 @@ A full-stack incident reporting and Occupational Health and Safety (K3) monitori
 
 ## Interface Preview
 
-![NenaCare Incident Monitoring Dashboard](assets/nenacare.jpg) The system integrates Google Gemini AI for automated hazard risk evaluation, Telegram Bot for real-time alerts and remote status dispatching, interactive Chart.js analytics, and automated PDF compliance reporting.
+[![Interface Preview Status](https://img.shields.io/badge/Interface_Preview-Documentation_in_Progress-2563eb?style=for-the-badge)](https://github.com/ANTARTICA1/NenaCare) The system integrates Google Gemini AI for automated hazard risk evaluation, Telegram Bot for real-time alerts and remote status dispatching, interactive Chart.js analytics, and automated PDF compliance reporting.
 
 ## System Overview
 
