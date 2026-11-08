@@ -14,9 +14,9 @@ In fast-paced hospitality environments such as commercial kitchens and dining ha
 
 - Multi-Category Hazard Reporting: Standardized intake forms capturing incidents across critical categories: Fire & Gas, Electrical, Environmental & Cleanliness, and Ergonomics & PPE.
 - Whistleblower Privacy Protection: Optional anonymous mode that sanitizes reporter identity in database records, fostering an open safety culture without fear of retaliation.
-- Automated AI Risk Assessment: Powered by Google Gemini 2.5 Flash-Lite API, evaluating incident severity into tiered priority levels (Rendah, Normal, Tinggi) and generating actionable mitigation protocols.
+- Automated AI Risk Assessment: Powered by Google Gemini 2.5 Flash-Lite API, evaluating incident severity into tiered priority levels (Low, Normal, High) and generating actionable mitigation protocols.
 - Structured AI Output Extraction: Backend parsing routines that extract structured JSON payloads directly from Gemini responses for relational persistence.
-- Telegram Bot Two-Way Integration: Instant mobile alert delivery to safety managers with inline callback buttons for remote status progression (Menunggu, Diproses, Selesai).
+- Telegram Bot Two-Way Integration: Instant mobile alert delivery to safety managers with inline callback buttons for remote status progression (Pending, In Progress, Resolved).
 - Live Administrative Dashboard: Real-time incident feed, KPI performance counters, and interactive visual charts (Doughnut chart for status distribution and Bar chart for category breakdown via Chart.js).
 - Regulatory PDF Export: Automated server-side generation of standardized A4 landscape audit documents via Dompdf, including date-range filtering and incident chronologies.
 - Role-Based Administrative Control: Protected session management, password hashing (BCRYPT), and administrative audit trail logging.
