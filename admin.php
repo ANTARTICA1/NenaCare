@@ -190,14 +190,14 @@ $exportCsvUrl = 'export_csv.php' . ($exportParams ? '?' . $exportParams : '');
         </div>
     </form>
 
-    <div class="card-panel" style="padding: 0; overflow: hidden;">
+    <div class="table-card">
         <div style="padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-default);">
             <h2 class="panel-heading" style="margin-bottom: 0;">
                 <i class="bi bi-table"></i> Log Rekam Insiden
             </h2>
             <span class="badge badge-rendah"><?= count($reports) ?> Data Ditemukan</span>
         </div>
-        <div class="table-wrapper" style="border: none; border-radius: 0;">
+        <div class="table-wrapper">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -275,8 +275,8 @@ $exportCsvUrl = 'export_csv.php' . ($exportParams ? '?' . $exportParams : '');
 </div>
 
 <script>
-// Chart.js Anti-Slop Strict Styling
-Chart.defaults.color = '#94a3b8';
+// Chart.js Light Mode Clean Styling
+Chart.defaults.color = '#475569';
 Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
 
 const statusData = <?= json_encode($stats['by_status']) ?>;
@@ -284,8 +284,8 @@ const statusLabels = statusData.map(d => d.status);
 const statusValues = statusData.map(d => parseInt(d.c));
 const statusColors = statusLabels.map(s => {
     if (s === 'Menunggu') return '#94a3b8';
-    if (s === 'Diproses') return '#0ea5e9';
-    if (s === 'Selesai') return '#10b981';
+    if (s === 'Diproses') return '#0284c7';
+    if (s === 'Selesai') return '#16a34a';
     return '#64748b';
 });
 
@@ -296,8 +296,8 @@ new Chart(document.getElementById('statusChart'), {
         datasets: [{
             data: statusValues,
             backgroundColor: statusColors,
-            borderColor: '#0f172a',
-            borderWidth: 2,
+            borderColor: '#ffffff',
+            borderWidth: 3,
             hoverOffset: 4
         }]
     },
@@ -306,7 +306,7 @@ new Chart(document.getElementById('statusChart'), {
         plugins: {
             legend: {
                 position: 'bottom',
-                labels: { color: '#94a3b8', font: { size: 12 }, padding: 14 }
+                labels: { color: '#475569', font: { size: 12 }, padding: 14 }
             }
         },
         cutout: '68%'
@@ -327,7 +327,7 @@ new Chart(document.getElementById('kategoriChart'), {
             backgroundColor: '#0284c7',
             borderColor: '#0369a1',
             borderWidth: 1,
-            borderRadius: 4,
+            borderRadius: 6,
             barThickness: 28
         }]
     },
@@ -339,11 +339,11 @@ new Chart(document.getElementById('kategoriChart'), {
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { color: '#94a3b8', stepSize: 1 },
-                grid: { color: 'rgba(255, 255, 255, 0.04)' }
+                ticks: { color: '#64748b', stepSize: 1 },
+                grid: { color: '#f1f5f9' }
             },
             x: {
-                ticks: { color: '#94a3b8', font: { size: 11 }, maxRotation: 30 },
+                ticks: { color: '#64748b', font: { size: 11 }, maxRotation: 30 },
                 grid: { display: false }
             }
         }
@@ -353,7 +353,6 @@ new Chart(document.getElementById('kategoriChart'), {
 function updateStatus(selectEl) {
     const id = selectEl.dataset.id;
     const status = selectEl.value;
-    const originalBorder = selectEl.style.borderColor;
 
     fetch('admin.php', {
         method: 'POST',
@@ -364,7 +363,8 @@ function updateStatus(selectEl) {
     .then(data => {
         if (data.success) {
             selectEl.style.borderColor = 'var(--success)';
-            setTimeout(() => { selectEl.style.borderColor = originalBorder; }, 1200);
+            selectEl.style.boxShadow = '0 0 0 3px rgba(22, 163, 74, 0.2)';
+            setTimeout(() => { selectEl.style.borderColor = ''; selectEl.style.boxShadow = ''; }, 1200);
         } else {
             alert('Gagal memperbarui status insiden.');
         }
@@ -375,7 +375,6 @@ function updateStatus(selectEl) {
 function updatePriority(selectEl) {
     const id = selectEl.dataset.id;
     const priority = selectEl.value;
-    const originalBorder = selectEl.style.borderColor;
 
     fetch('admin.php', {
         method: 'POST',
@@ -386,7 +385,8 @@ function updatePriority(selectEl) {
     .then(data => {
         if (data.success) {
             selectEl.style.borderColor = 'var(--success)';
-            setTimeout(() => { selectEl.style.borderColor = originalBorder; }, 1200);
+            selectEl.style.boxShadow = '0 0 0 3px rgba(22, 163, 74, 0.2)';
+            setTimeout(() => { selectEl.style.borderColor = ''; selectEl.style.boxShadow = ''; }, 1200);
         } else {
             alert('Gagal memperbarui tingkat prioritas.');
         }

@@ -90,9 +90,7 @@ $statusVal = $report['status'];
         @media print {
             .navbar, .breadcrumb-nav, .detail-actions-bar, .no-print, form { display: none !important; }
             body { background: #fff !important; color: #000 !important; }
-            .card-panel { border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
-            .rc-desc { background: #f8fafc !important; color: #000 !important; border-left: 3px solid #000 !important; }
-            .rc-ai { background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; color: #000 !important; }
+            .detail-card { border: 1px solid #ccc !important; box-shadow: none !important; }
             .badge { border: 1px solid #000 !important; color: #000 !important; background: #eee !important; }
         }
     </style>
@@ -146,7 +144,7 @@ $statusVal = $report['status'];
         </div>
     <?php endif; ?>
 
-    <div class="card-panel" style="margin-bottom: 1.5rem;">
+    <div class="detail-card">
         <div class="detail-header">
             <div>
                 <div class="detail-id">BERKAS INVESTIGASI #LAP-<?= str_pad($report['id_laporan'], 4, '0', STR_PAD_LEFT) ?></div>
@@ -186,32 +184,31 @@ $statusVal = $report['status'];
             </div>
         </div>
 
-        <div>
-            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem;">
                 <i class="bi bi-card-text"></i> Uraian Kronologi Kejadian
             </label>
-            <div class="rc-desc" style="margin-bottom: 0;">
+            <div class="rc-desc" style="font-size: 1rem; margin-bottom: 0;">
                 "<?= htmlspecialchars($report['deskripsi_kejadian']) ?>"
+            </div>
+        </div>
+
+        <div class="rc-ai-box">
+            <div class="rc-ai-label">
+                <i class="bi bi-cpu"></i> Rekomendasi Keselamatan K3 (AI Assistant)
+            </div>
+            <div class="rc-ai-content" style="font-size: 0.95rem;">
+                <?= htmlspecialchars($report['saran_ai']) ?>
             </div>
         </div>
     </div>
 
-    <div class="card-panel" style="margin-bottom: 1.5rem;">
-        <div class="panel-header" style="margin-bottom: 0.85rem; padding-bottom: 0.75rem;">
-            <h2 class="panel-heading">
-                <i class="bi bi-cpu"></i> Rekomendasi Keselamatan K3 (AI Assistant)
-            </h2>
-            <span class="badge <?= $prioBadge ?>"><?= htmlspecialchars($report['prioritas']) ?></span>
-        </div>
-        <p style="font-size: 0.95rem; line-height: 1.65; color: var(--text-primary); margin: 0;">
-            <?= htmlspecialchars($report['saran_ai']) ?>
-        </p>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-        <div class="card-panel">
-            <div class="panel-header" style="margin-bottom: 0.85rem; padding-bottom: 0.75rem;">
-                <h2 class="panel-heading"><i class="bi bi-clock-history"></i> Tahapan Progres Insiden</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.75rem;">
+        <div class="detail-card" style="margin-bottom: 0;">
+            <div class="panel-header" style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+                <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="bi bi-clock-history" style="color: var(--primary);"></i> Tahapan Progres Insiden
+                </h2>
             </div>
             <div class="timeline">
                 <div class="timeline-item done">
@@ -232,9 +229,11 @@ $statusVal = $report['status'];
             </div>
         </div>
 
-        <div class="card-panel no-print">
-            <div class="panel-header" style="margin-bottom: 0.85rem; padding-bottom: 0.75rem;">
-                <h2 class="panel-heading"><i class="bi bi-sliders"></i> Tindakan Pengawas K3</h2>
+        <div class="detail-card no-print" style="margin-bottom: 0;">
+            <div class="panel-header" style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+                <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="bi bi-sliders" style="color: var(--primary);"></i> Tindakan Pengawas K3
+                </h2>
             </div>
             <?php if ($isAdmin): ?>
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
@@ -242,7 +241,7 @@ $statusVal = $report['status'];
                         <form method="POST" action="" style="flex: 1;">
                             <input type="hidden" name="action" value="quick_status">
                             <input type="hidden" name="status" value="Diproses">
-                            <button type="submit" class="btn btn-accent btn-sm" style="width: 100%;">
+                            <button type="submit" class="btn btn-outline btn-sm" style="width: 100%;">
                                 <i class="bi bi-arrow-repeat"></i> Mulai Penanganan
                             </button>
                         </form>
@@ -298,11 +297,13 @@ $statusVal = $report['status'];
         </div>
     </div>
 
-    <div class="card-panel">
-        <div class="panel-header">
+    <div class="detail-card">
+        <div class="panel-header" style="margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
             <div>
-                <h2 class="panel-heading"><i class="bi bi-journal-text"></i> Log Catatan & Tindak Lanjut</h2>
-                <div class="panel-subtext">Catatan investigasi internal petugas keselamatan kerja.</div>
+                <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="bi bi-journal-text" style="color: var(--primary);"></i> Log Catatan & Tindak Lanjut
+                </h2>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Catatan investigasi internal petugas keselamatan kerja.</div>
             </div>
             <span class="badge badge-rendah"><?= count($notes) ?> Catatan</span>
         </div>
@@ -322,7 +323,7 @@ $statusVal = $report['status'];
 
         <div class="notes-list">
             <?php if (empty($notes)): ?>
-                <div class="empty-state" style="padding: 2rem;">
+                <div class="empty-state" style="padding: 2.5rem 1rem;">
                     <i class="bi bi-journal" style="font-size: 1.75rem;"></i>
                     <p>Belum ada catatan tindak lanjut yang direkam untuk berkas ini.</p>
                 </div>

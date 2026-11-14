@@ -45,10 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Otorisasi Akses Pengawas Keselamatan Kerja</p>
         </div>
 
-        <div class="card-panel">
-            <div class="panel-header" style="margin-bottom: 1.25rem;">
-                <h2 class="panel-heading" style="font-size: 1.05rem;">
-                    <i class="bi bi-key"></i> Autentikasi Sistem
+        <div class="login-card">
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle);">
+                <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="bi bi-key" style="color: var(--primary);"></i> Autentikasi Sistem
                 </h2>
             </div>
             
@@ -68,10 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="password" name="password" id="password" class="form-control" required placeholder="Masukkan kata sandi">
                 </div>
 
-                <label class="checkbox-wrapper" for="show_pass" style="margin-bottom: 1.25rem;">
-                    <input type="checkbox" id="show_pass">
-                    <div class="checkbox-label">Perlihatkan kata sandi</div>
-                </label>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
+                    <input type="checkbox" id="show_pass" style="width: 16px; height: 16px; accent-color: #0f172a; cursor: pointer;">
+                    <label for="show_pass" style="font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; user-select: none;">Perlihatkan kata sandi</label>
+                </div>
 
                 <button type="submit" class="btn btn-primary btn-submit">
                     <i class="bi bi-box-arrow-in-right"></i> Masuk ke Konsol
