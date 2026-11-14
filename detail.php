@@ -24,6 +24,23 @@ if (!$report) {
 $noteMessage = '';
 
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'delete_report') {
+        $result = $manager->deleteReport($id);
+        if ($result) {
+            header("Location: admin.php?deleted=1");
+        } else {
+            header("Location: detail.php?id=$id&delete_error=1");
+        }
+        exit;
+    }
+    if ($_POST['action'] === 'quick_status') {
+        $newStatus = $_POST['status'] ?? '';
+        if (in_array($newStatus, ['Menunggu', 'Diproses', 'Selesai'])) {
+            $manager->updateStatus($id, $newStatus);
+            header("Location: detail.php?id=$id&updated=1");
+            exit;
+        }
+    }
     if ($_POST['action'] === 'update_details') {
         $newStatus = $_POST['status'];
         $newPriority = $_POST['priority'];
@@ -65,23 +82,32 @@ $statusVal = $report['status'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail Laporan #<?= $id ?> — NenaCare</title>
-    <meta name="description" content="Detail laporan insiden K3 #<?= $id ?> di Nena Cafe.">
+    <title>Berkas Insiden #LAP-<?= str_pad($id, 4, '0', STR_PAD_LEFT) ?> — NenaCare K3</title>
+    <meta name="description" content="Detail investigasi insiden keselamatan kerja K3 #LAP-<?= str_pad($id, 4, '0', STR_PAD_LEFT) ?> di Nena Cafe.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        @media print {
+            .navbar, .breadcrumb-nav, .detail-actions-bar, .no-print, form { display: none !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .card-panel { border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
+            .rc-desc { background: #f8fafc !important; color: #000 !important; border-left: 3px solid #000 !important; }
+            .rc-ai { background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; color: #000 !important; }
+            .badge { border: 1px solid #000 !important; color: #000 !important; background: #eee !important; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="shape shape-1"></div>
-<div class="shape shape-2"></div>
-
 <?php if ($isAdmin): ?>
-
-<nav class="navbar">
-    <a href="admin.php" class="nav-brand"><i class="bi bi-shield-check"></i> NenaCare</a>
+<nav class="navbar no-print">
+    <a href="admin.php" class="nav-brand">
+        <i class="bi bi-shield-check"></i>
+        <span>NenaCare K3</span>
+    </a>
     <ul class="nav-links">
-        <li><a href="admin.php"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a></li>
-        <li><a href="index.php"><i class="bi bi-megaphone-fill"></i> Pelaporan</a></li>
+        <li><a href="admin.php"><i class="bi bi-grid-1x2"></i> Konsol Pemantauan</a></li>
+        <li><a href="index.php"><i class="bi bi-megaphone"></i> Portal Publik</a></li>
     </ul>
     <div class="nav-user">
         <div class="nav-user-info">
@@ -94,145 +120,220 @@ $statusVal = $report['status'];
 </nav>
 <?php endif; ?>
 
-<div class="detail-wrapper" style="animation: fadeInUp 0.5s ease;">
+<div class="detail-wrapper">
 
-    <?php if (isset($_GET['updated'])): ?>
-        <div class="glass-alert success" style="margin-bottom: 1.5rem;"><i class="bi bi-check-circle-fill"></i> Status berhasil diperbarui!</div>
-    <?php endif; ?>
-    <?php if (isset($_GET['noted'])): ?>
-        <div class="glass-alert success" style="margin-bottom: 1.5rem;"><i class="bi bi-check-circle-fill"></i> Catatan berhasil ditambahkan!</div>
-    <?php endif; ?>
-
-    <div style="margin-bottom: 1.5rem;">
-        <a href="<?= $isAdmin ? 'admin.php' : 'index.php' ?>" class="btn btn-outline"><i class="bi bi-arrow-left"></i> Kembali</a>
+    <div class="breadcrumb-nav no-print">
+        <a href="<?= $isAdmin ? 'admin.php' : 'index.php' ?>">
+            <i class="bi bi-arrow-left"></i> <?= $isAdmin ? 'Konsol Pemantauan' : 'Beranda Pelaporan' ?>
+        </a>
+        <span>/</span>
+        <span>Berkas #LAP-<?= str_pad($report['id_laporan'], 4, '0', STR_PAD_LEFT) ?></span>
     </div>
 
-    <div class="glass-panel" style="margin-bottom: 1.5rem;">
+    <?php if (isset($_GET['updated'])): ?>
+        <div class="alert-box success" style="margin-bottom: 1.5rem;">
+            <i class="bi bi-check-circle"></i> Status dan prioritas insiden berhasil diperbarui.
+        </div>
+    <?php endif; ?>
+    <?php if (isset($_GET['noted'])): ?>
+        <div class="alert-box success" style="margin-bottom: 1.5rem;">
+            <i class="bi bi-check-circle"></i> Catatan audit petugas berhasil ditambahkan ke riwayat.
+        </div>
+    <?php endif; ?>
+    <?php if (isset($_GET['delete_error'])): ?>
+        <div class="alert-box danger" style="margin-bottom: 1.5rem;">
+            <i class="bi bi-exclamation-triangle"></i> Gagal menghapus berkas laporan. Silakan coba kembali.
+        </div>
+    <?php endif; ?>
+
+    <div class="card-panel" style="margin-bottom: 1.5rem;">
         <div class="detail-header">
             <div>
-                <div class="detail-id">LAPORAN #<?= str_pad($report['id_laporan'], 4, '0', STR_PAD_LEFT) ?></div>
-                <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0.3rem 0 0;">
+                <div class="detail-id">BERKAS INVESTIGASI #LAP-<?= str_pad($report['id_laporan'], 4, '0', STR_PAD_LEFT) ?></div>
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin: 0.35rem 0 0; letter-spacing: -0.02em;">
                     <?= htmlspecialchars($report['kategori_masalah']) ?>
                 </h1>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span class="badge <?= $prioBadge ?>" style="font-size: 0.85rem; padding: 6px 12px;"><?= htmlspecialchars($report['prioritas']) ?></span>
-                <span class="badge <?= $statusBadge ?>" style="font-size: 0.85rem; padding: 6px 12px;"><?= htmlspecialchars($report['status']) ?></span>
+            <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+                <span class="badge <?= $prioBadge ?>" style="font-size: 0.825rem; padding: 0.35rem 0.75rem;">
+                    Prioritas: <?= htmlspecialchars($report['prioritas']) ?>
+                </span>
+                <span class="badge <?= $statusBadge ?>" style="font-size: 0.825rem; padding: 0.35rem 0.75rem;">
+                    Status: <?= htmlspecialchars($report['status']) ?>
+                </span>
+                <button type="button" onclick="window.print()" class="btn btn-outline btn-sm no-print" title="Cetak Berkas">
+                    <i class="bi bi-printer"></i> Cetak
+                </button>
             </div>
         </div>
 
         <div class="detail-grid">
             <div class="detail-item">
-                <label><i class="bi bi-person-fill"></i> Pelapor</label>
+                <label><i class="bi bi-person"></i> Nama Pelapor</label>
                 <span><?= $displayName ?></span>
             </div>
             <div class="detail-item">
-                <label><i class="bi bi-people-fill"></i> Tipe Pelapor</label>
+                <label><i class="bi bi-people"></i> Klasifikasi Peran</label>
                 <span><?= $displayType ?></span>
             </div>
             <div class="detail-item">
-                <label><i class="bi bi-geo-alt-fill"></i> Lokasi Kejadian</label>
+                <label><i class="bi bi-geo-alt"></i> Lokasi Kejadian</label>
                 <span><?= htmlspecialchars($report['lokasi_kejadian']) ?></span>
             </div>
             <div class="detail-item">
-                <label><i class="bi bi-clock-fill"></i> Waktu Lapor</label>
-                <span><?= date('d M Y, H:i:s', strtotime($report['waktu_lapor'])) ?></span>
+                <label><i class="bi bi-clock"></i> Waktu Pelaporan</label>
+                <span class="mono-cell" style="color: var(--text-primary); font-size: 0.95rem; font-weight: 600;"><?= date('d M Y, H:i:s', strtotime($report['waktu_lapor'])) ?></span>
             </div>
         </div>
-        <div style="margin-top: 0.5rem;">
-            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;"><i class="bi bi-chat-text-fill"></i> Deskripsi Kejadian</label>
+
+        <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
+                <i class="bi bi-card-text"></i> Uraian Kronologi Kejadian
+            </label>
             <div class="rc-desc" style="margin-bottom: 0;">
                 "<?= htmlspecialchars($report['deskripsi_kejadian']) ?>"
             </div>
         </div>
     </div>
 
-    <div class="glass-panel" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(79, 172, 254, 0.03), rgba(79, 172, 254, 0.06)); border-color: rgba(79, 172, 254, 0.15);">
-        <h2 class="panel-heading" style="color: var(--primary);"><i class="bi bi-robot"></i> Analisis AI <span class="badge <?= $prioBadge ?>" style="margin-left: 8px;"><?= htmlspecialchars($report['prioritas']) ?></span></h2>
-        <p style="font-size: 1.05rem; line-height: 1.7; color: var(--text-main); margin: 0;">
+    <div class="card-panel" style="margin-bottom: 1.5rem;">
+        <div class="panel-header" style="margin-bottom: 0.85rem; padding-bottom: 0.75rem;">
+            <h2 class="panel-heading">
+                <i class="bi bi-cpu"></i> Rekomendasi Keselamatan K3 (AI Assistant)
+            </h2>
+            <span class="badge <?= $prioBadge ?>"><?= htmlspecialchars($report['prioritas']) ?></span>
+        </div>
+        <p style="font-size: 0.95rem; line-height: 1.65; color: var(--text-primary); margin: 0;">
             <?= htmlspecialchars($report['saran_ai']) ?>
         </p>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-        <div class="glass-panel">
-            <h2 class="panel-heading"><i class="bi bi-clock-history"></i> Timeline Status</h2>
+        <div class="card-panel">
+            <div class="panel-header" style="margin-bottom: 0.85rem; padding-bottom: 0.75rem;">
+                <h2 class="panel-heading"><i class="bi bi-clock-history"></i> Tahapan Progres Insiden</h2>
+            </div>
             <div class="timeline">
                 <div class="timeline-item done">
                     <div class="timeline-dot"></div>
-                    <div class="timeline-title">📋 Dilaporkan</div>
+                    <div class="timeline-title">Laporan Diterima</div>
                     <div class="timeline-time"><?= $timelineLapor ?></div>
                 </div>
                 <div class="timeline-item <?= ($statusVal === 'Diproses' || $statusVal === 'Selesai') ? 'done' : '' ?> <?= $statusVal === 'Diproses' ? 'active' : '' ?>">
                     <div class="timeline-dot"></div>
-                    <div class="timeline-title">🔧 Diproses</div>
-                    <div class="timeline-time"><?= ($statusVal === 'Diproses' || $statusVal === 'Selesai') ? 'Sudah ditangani' : 'Belum diproses' ?></div>
+                    <div class="timeline-title">Penanganan Lapangan</div>
+                    <div class="timeline-time"><?= ($statusVal === 'Diproses' || $statusVal === 'Selesai') ? 'Tindakan perbaikan sedang/telah dilakukan' : 'Menunggu alokasi tim teknis' ?></div>
                 </div>
                 <div class="timeline-item <?= $statusVal === 'Selesai' ? 'done' : '' ?> <?= $statusVal === 'Selesai' ? 'active' : '' ?>">
                     <div class="timeline-dot"></div>
-                    <div class="timeline-title">✅ Selesai</div>
-                    <div class="timeline-time"><?= $statusVal === 'Selesai' ? 'Insiden diselesaikan' : 'Belum selesai' ?></div>
+                    <div class="timeline-title">Verifikasi Tuntas</div>
+                    <div class="timeline-time"><?= $statusVal === 'Selesai' ? 'Insiden telah tertangani dan dinyatakan aman' : 'Menunggu konfirmasi penyelesaian' ?></div>
                 </div>
             </div>
         </div>
 
-        <div class="glass-panel">
-            <h2 class="panel-heading"><i class="bi bi-pencil-square"></i> Ubah Status & Prioritas</h2>
+        <div class="card-panel no-print">
+            <div class="panel-header" style="margin-bottom: 0.85rem; padding-bottom: 0.75rem;">
+                <h2 class="panel-heading"><i class="bi bi-sliders"></i> Tindakan Pengawas K3</h2>
+            </div>
             <?php if ($isAdmin): ?>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+                    <?php if ($report['status'] !== 'Diproses'): ?>
+                        <form method="POST" action="" style="flex: 1;">
+                            <input type="hidden" name="action" value="quick_status">
+                            <input type="hidden" name="status" value="Diproses">
+                            <button type="submit" class="btn btn-accent btn-sm" style="width: 100%;">
+                                <i class="bi bi-arrow-repeat"></i> Mulai Penanganan
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                    <?php if ($report['status'] !== 'Selesai'): ?>
+                        <form method="POST" action="" style="flex: 1;">
+                            <input type="hidden" name="action" value="quick_status">
+                            <input type="hidden" name="status" value="Selesai">
+                            <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                                <i class="bi bi-check2"></i> Tandai Selesai
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </div>
+
                 <form method="POST" action="">
                     <input type="hidden" name="action" value="update_details">
                     <div class="form-group">
-                        <label class="form-label">Status Saat Ini</label>
+                        <label class="form-label">Status Penanganan</label>
                         <select name="status" class="form-control">
-                            <option value="Menunggu" <?= $report['status'] === 'Menunggu' ? 'selected' : '' ?>>⏳ Menunggu</option>
-                            <option value="Diproses" <?= $report['status'] === 'Diproses' ? 'selected' : '' ?>>🔧 Diproses</option>
-                            <option value="Selesai" <?= $report['status'] === 'Selesai' ? 'selected' : '' ?>>✅ Selesai</option>
+                            <option value="Menunggu" <?= $report['status'] === 'Menunggu' ? 'selected' : '' ?>>Menunggu</option>
+                            <option value="Diproses" <?= $report['status'] === 'Diproses' ? 'selected' : '' ?>>Diproses</option>
+                            <option value="Selesai" <?= $report['status'] === 'Selesai' ? 'selected' : '' ?>>Selesai</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Prioritas Saat Ini</label>
+                        <label class="form-label">Tingkat Prioritas</label>
                         <select name="priority" class="form-control">
-                            <option value="Tinggi" <?= $report['prioritas'] === 'Tinggi' ? 'selected' : '' ?>>🔴 Tinggi</option>
-                            <option value="Normal" <?= $report['prioritas'] === 'Normal' ? 'selected' : '' ?>>🟡 Normal</option>
-                            <option value="Rendah" <?= $report['prioritas'] === 'Rendah' ? 'selected' : '' ?>>🟢 Rendah</option>
+                            <option value="Tinggi" <?= $report['prioritas'] === 'Tinggi' ? 'selected' : '' ?>>Tinggi</option>
+                            <option value="Normal" <?= $report['prioritas'] === 'Normal' ? 'selected' : '' ?>>Normal</option>
+                            <option value="Rendah" <?= $report['prioritas'] === 'Rendah' ? 'selected' : '' ?>>Rendah</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="bi bi-check2-circle"></i> Update Data</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="bi bi-arrow-clockwise"></i> Perbarui Status & Prioritas
+                    </button>
+                </form>
+
+                <form method="POST" action="" onsubmit="return confirm('Apakah Anda yakin ingin menghapus berkas laporan ini secara permanen dari sistem?');" style="margin-top: 0.85rem;">
+                    <input type="hidden" name="action" value="delete_report">
+                    <button type="submit" class="btn btn-danger-outline btn-sm" style="width: 100%;">
+                        <i class="bi bi-trash"></i> Hapus Berkas Laporan
+                    </button>
                 </form>
             <?php else: ?>
-                <p style="color: var(--text-muted); font-size: 0.95rem;"><i class="bi bi-lock-fill"></i> Login sebagai admin untuk mengubah status.</p>
-                <a href="login.php" class="btn btn-outline"><i class="bi bi-box-arrow-in-right"></i> Login Admin</a>
+                <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">
+                    <i class="bi bi-lock"></i> Masuk sebagai petugas K3 berwenang untuk mengubah status atau mencatat tindak lanjut.
+                </p>
+                <a href="login.php" class="btn btn-outline" style="width: 100%;">
+                    <i class="bi bi-shield-lock"></i> Masuk Portal Petugas
+                </a>
             <?php endif; ?>
         </div>
     </div>
 
-    <div class="glass-panel">
-        <h2 class="panel-heading"><i class="bi bi-journal-text"></i> Catatan Admin</h2>
+    <div class="card-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-heading"><i class="bi bi-journal-text"></i> Log Catatan & Tindak Lanjut</h2>
+                <div class="panel-subtext">Catatan investigasi internal petugas keselamatan kerja.</div>
+            </div>
+            <span class="badge badge-rendah"><?= count($notes) ?> Catatan</span>
+        </div>
 
         <?php if ($isAdmin): ?>
-            <form method="POST" action="" style="margin-bottom: 1.5rem;">
+            <form method="POST" action="" class="no-print" style="margin-bottom: 1.5rem;">
                 <input type="hidden" name="action" value="add_note">
                 <div class="form-group">
-                    <textarea name="catatan" class="form-control" required placeholder="Tulis catatan atau tindak lanjut..." rows="3"></textarea>
+                    <label class="form-label">Tambah Catatan Investigasi / Penanganan</label>
+                    <textarea name="catatan" class="form-control" required placeholder="Tuliskan tindakan korektif, nama teknisi yang bertugas, atau catatan verifikasi lapangan..." rows="3"></textarea>
                 </div>
-                <button type="submit" class="btn btn-accent"><i class="bi bi-plus-circle-fill"></i> Tambah Catatan</button>
+                <button type="submit" class="btn btn-accent btn-sm">
+                    <i class="bi bi-plus-circle"></i> Simpan Catatan Tindak Lanjut
+                </button>
             </form>
         <?php endif; ?>
 
         <div class="notes-list">
             <?php if (empty($notes)): ?>
                 <div class="empty-state" style="padding: 2rem;">
-                    <i class="bi bi-journal-x" style="font-size: 2rem;"></i>
-                    <p>Belum ada catatan untuk laporan ini.</p>
+                    <i class="bi bi-journal" style="font-size: 1.75rem;"></i>
+                    <p>Belum ada catatan tindak lanjut yang direkam untuk berkas ini.</p>
                 </div>
             <?php else: ?>
                 <?php foreach ($notes as $note): ?>
                     <div class="note-item">
                         <div class="note-meta">
                             <span class="note-author">
-                                <i class="bi bi-person-badge-fill"></i>
+                                <i class="bi bi-person-badge"></i>
                                 <?= htmlspecialchars($note['username']) ?>
-                                <span class="badge badge-diproses" style="font-size: 0.65rem; padding: 2px 6px;"><?= htmlspecialchars($note['role']) ?></span>
+                                <span class="badge badge-diproses" style="font-size: 0.7rem; padding: 0.15rem 0.45rem;"><?= htmlspecialchars($note['role']) ?></span>
                             </span>
                             <span class="note-time"><i class="bi bi-clock"></i> <?= date('d M Y, H:i', strtotime($note['waktu_catatan'])) ?></span>
                         </div>

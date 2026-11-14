@@ -87,18 +87,18 @@ Format:
     }
 
     private function sendTelegramNotification($reportId, $nama_pelapor, $tipe_pelapor, $kategori_masalah, $lokasi_kejadian, $deskripsi_kejadian, $prioritas, $saran_ai) {
-        $message = "🚨 *LAPORAN K3 NENA CAFE* 🚨\n\n";
-        $message .= "👨‍💼 *Pelapor:* $nama_pelapor ($tipe_pelapor)\n";
-        $message .= "📍 *Lokasi:* $lokasi_kejadian\n";
-        $message .= "📂 *Kategori:* $kategori_masalah\n";
-        $message .= "📝 *Deskripsi:* $deskripsi_kejadian\n\n";
-        $message .= "🤖 *Analisis AI:*\n";
-        $message .= "⚠️ [$prioritas] - $saran_ai\n";
+        $message = "[LAPORAN K3 NENA CAFE]\n\n";
+        $message .= "*Pelapor:* $nama_pelapor ($tipe_pelapor)\n";
+        $message .= "*Lokasi:* $lokasi_kejadian\n";
+        $message .= "*Kategori:* $kategori_masalah\n";
+        $message .= "*Deskripsi:* $deskripsi_kejadian\n\n";
+        $message .= "*Analisis K3:*\n";
+        $message .= "[$prioritas] - $saran_ai\n";
 
         $keyboard = [
             'inline_keyboard' => [[
-                ['text' => '🚀 Proses', 'callback_data' => "action_proses_$reportId"],
-                ['text' => '✅ Selesai', 'callback_data' => "action_selesai_$reportId"]
+                ['text' => 'Proses Penanganan', 'callback_data' => "action_proses_$reportId"],
+                ['text' => 'Tandai Selesai', 'callback_data' => "action_selesai_$reportId"]
             ]]
         ];
 
@@ -170,6 +170,30 @@ Format:
         return $stmt->execute();
     }
 
+    public function deleteReport($id) {
+        $id = intval($id);
+        if ($id <= 0) return false;
+
+        // Verify report exists first
+        $check = $this->db->prepare("SELECT id_laporan FROM laporan_k3 WHERE id_laporan = ?");
+        $check->bind_param("i", $id);
+        $check->execute();
+        if ($check->get_result()->num_rows === 0) {
+            return false;
+        }
+
+        // Delete related notes first (foreign key safety)
+        $stmtNotes = $this->db->prepare("DELETE FROM catatan_admin WHERE id_laporan = ?");
+        $stmtNotes->bind_param("i", $id);
+        $stmtNotes->execute();
+
+        // Then delete the report itself
+        $stmt = $this->db->prepare("DELETE FROM laporan_k3 WHERE id_laporan = ?");
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
+
+
     public function getStatistics() {
         $stats = [];
 
@@ -187,6 +211,10 @@ Format:
 
         $res = $this->db->query("SELECT COUNT(*) as c FROM laporan_k3 WHERE prioritas='Tinggi'");
         $stats['tinggi'] = $res->fetch_assoc()['c'];
+
+        $totalCount = intval($stats['total']);
+        $selesaiCount = intval($stats['selesai']);
+        $stats['persen_selesai'] = $totalCount > 0 ? round(($selesaiCount / $totalCount) * 100, 1) : 0;
 
         $res = $this->db->query("SELECT kategori_masalah, COUNT(*) as c FROM laporan_k3 GROUP BY kategori_masalah ORDER BY c DESC");
         $stats['by_kategori'] = [];
@@ -207,6 +235,16 @@ Format:
         $where = [];
         $params = [];
         $types = '';
+
+        if (!empty($filters['q'])) {
+            $where[] = "(nama_pelapor LIKE ? OR lokasi_kejadian LIKE ? OR deskripsi_kejadian LIKE ? OR kategori_masalah LIKE ?)";
+            $term = "%" . $filters['q'] . "%";
+            $params[] = $term;
+            $params[] = $term;
+            $params[] = $term;
+            $params[] = $term;
+            $types .= 'ssss';
+        }
 
         if (!empty($filters['status'])) {
             $where[] = "status = ?";

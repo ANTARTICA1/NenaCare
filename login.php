@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: admin.php');
         exit;
     } else {
-        $error = 'Username atau password salah.';
+        $error = 'Kombinasi nama pengguna atau kata sandi tidak valid.';
     }
 }
 ?>
@@ -28,53 +28,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — NenaCare Admin</title>
-    <meta name="description" content="Halaman login untuk admin NenaCare K3 Incident Reporting System.">
+    <title>Masuk Petugas — NenaCare K3</title>
+    <meta name="description" content="Autentikasi masuk petugas dan auditor K3 NenaCare.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
-<div class="shape shape-1"></div>
-<div class="shape shape-2"></div>
-
 <div class="login-wrapper">
     <div class="login-box">
-        <div class="logo">
-            <h1><i class="bi bi-shield-check"></i> NenaCare</h1>
-            <p>Admin Control Panel</p>
+        <div class="login-header-block">
+            <div class="login-icon-badge">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <h1>NenaCare K3</h1>
+            <p>Otorisasi Akses Pengawas Keselamatan Kerja</p>
         </div>
 
-        <div class="glass-panel">
-            <h2 class="panel-heading"><i class="bi bi-lock-fill"></i> Masuk ke Dashboard</h2>
+        <div class="card-panel">
+            <div class="panel-header" style="margin-bottom: 1.25rem;">
+                <h2 class="panel-heading" style="font-size: 1.05rem;">
+                    <i class="bi bi-key"></i> Autentikasi Sistem
+                </h2>
+            </div>
             
             <?php if ($error): ?>
-                <div class="glass-alert danger" style="margin-top: 0; margin-bottom: 1.5rem;">
-                    <i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error) ?>
+                <div class="alert-box danger" style="margin-top: 0; margin-bottom: 1.25rem;">
+                    <i class="bi bi-exclamation-triangle"></i> <?= htmlspecialchars($error) ?>
                 </div>
             <?php endif; ?>
 
             <form method="POST" action="">
                 <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" required placeholder="Masukkan username" autofocus value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
+                    <label class="form-label">Nama Pengguna (Username)</label>
+                    <input type="text" name="username" class="form-control" required placeholder="Masukkan nama pengguna" autofocus value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" id="password" class="form-control" required placeholder="Masukkan password">
+                    <label class="form-label">Kata Sandi (Password)</label>
+                    <input type="password" name="password" id="password" class="form-control" required placeholder="Masukkan kata sandi">
                 </div>
 
-                <label class="checkbox-wrapper" for="show_pass" style="margin-bottom: 1.5rem;">
+                <label class="checkbox-wrapper" for="show_pass" style="margin-bottom: 1.25rem;">
                     <input type="checkbox" id="show_pass">
-                    <div class="checkbox-label">Tampilkan password</div>
+                    <div class="checkbox-label">Perlihatkan kata sandi</div>
                 </label>
 
-                <button type="submit" class="btn-submit"><i class="bi bi-box-arrow-in-right"></i> Login</button>
+                <button type="submit" class="btn btn-primary btn-submit">
+                    <i class="bi bi-box-arrow-in-right"></i> Masuk ke Konsol
+                </button>
             </form>
 
-            <div style="text-align: center; margin-top: 1.5rem;">
-                <a href="index.php" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.3s;">
-                    <i class="bi bi-arrow-left"></i> Kembali ke Pelaporan
+            <div style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+                <a href="index.php" style="color: var(--text-secondary); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <i class="bi bi-arrow-left"></i> Kembali ke Portal Pelaporan
                 </a>
             </div>
         </div>

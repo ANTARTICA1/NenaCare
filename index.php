@@ -7,16 +7,20 @@ $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_anonim = isset($_POST['is_anonim']) ? 1 : 0;
-    $nama_pelapor = $is_anonim ? null : $_POST['nama_pelapor'];
-    $tipe_pelapor = $is_anonim ? null : $_POST['tipe_pelapor'];
-    $kategori_masalah = $_POST['kategori_masalah'];
-    $lokasi_kejadian = $_POST['lokasi_kejadian'];
-    $deskripsi_kejadian = $_POST['deskripsi_kejadian'];
+    $nama_pelapor = $is_anonim ? null : trim($_POST['nama_pelapor'] ?? '');
+    $tipe_pelapor = $is_anonim ? null : trim($_POST['tipe_pelapor'] ?? '');
+    $kategori_masalah = trim($_POST['kategori_masalah'] ?? '');
+    $lokasi_kejadian = trim($_POST['lokasi_kejadian'] ?? '');
+    $deskripsi_kejadian = trim($_POST['deskripsi_kejadian'] ?? '');
 
-    if ($manager->saveReport($nama_pelapor, $tipe_pelapor, $kategori_masalah, $lokasi_kejadian, $deskripsi_kejadian, $is_anonim)) {
-        $message = '<div class="glass-alert success pulse-animation"><i class="bi bi-check-circle-fill"></i> Laporan berhasil terkirim & AI bertindak! Terdapat notifikasi Telegram ke Admin.</div>';
+    if (!empty($kategori_masalah) && !empty($lokasi_kejadian) && !empty($deskripsi_kejadian)) {
+        if ($manager->saveReport($nama_pelapor, $tipe_pelapor, $kategori_masalah, $lokasi_kejadian, $deskripsi_kejadian, $is_anonim)) {
+            $message = '<div class="alert-box success"><i class="bi bi-check-circle"></i> Laporan insiden berhasil dikirim. Analisis risiko telah dihasilkan dan notifikasi telah diteruskan ke tim pengawas.</div>';
+        } else {
+            $message = '<div class="alert-box danger"><i class="bi bi-exclamation-triangle"></i> Gagal menyimpan laporan ke basis data. Silakan coba kembali.</div>';
+        }
     } else {
-        $message = '<div class="glass-alert danger"><i class="bi bi-exclamation-triangle-fill"></i> Gagal memproses laporan.</div>';
+        $message = '<div class="alert-box danger"><i class="bi bi-exclamation-triangle"></i> Harap lengkapi semua kolom yang wajib diisi.</div>';
     }
 }
 
@@ -27,188 +31,210 @@ $reports = $manager->getAllReports();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NenaCare K3 — Incident Reporting System</title>
-    <meta name="description" content="Sistem pelaporan insiden K3 berbasis AI untuk Nena Cafe. Laporkan insiden keselamatan kerja dengan cepat dan aman.">
+    <title>NenaCare K3 — Sistem Manajemen Keselamatan Kerja & Pelaporan Insiden</title>
+    <meta name="description" content="Sistem Pelaporan Bahaya & Keselamatan Kerja (HSE) Nena Cafe dengan analisis risiko terintegrasi.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <style>
-        .main-container {
-            width: 90%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem 0;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-
-        @media(min-width: 992px) {
-            .main-container { grid-template-columns: 380px 1fr; align-items: start; }
-        }
-
-        .main-header {
-            grid-column: 1 / -1;
-            text-align: center;
-            margin-bottom: 2rem;
-            animation: fadeInDown 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .main-header h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin: 0;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
-
-        .main-header p {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            margin-top: 0.5rem;
-            font-weight: 300;
-        }
-
-        .panel-form {
-            position: sticky;
-            top: 2rem;
-        }
-
-        .admin-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.85rem;
-            margin-top: 0.8rem;
-            transition: color 0.3s;
-        }
-        .admin-link:hover { color: var(--primary); }
-    </style>
 </head>
 <body>
 
-<div class="shape shape-1"></div>
-<div class="shape shape-2"></div>
-
-<header class="main-header">
-    <h1><i class="bi bi-shield-check"></i> NenaCare</h1>
-    <p>AI-Powered K3 Incident Reporting System</p>
-    <a href="login.php" class="admin-link"><i class="bi bi-box-arrow-in-right"></i> Admin Dashboard</a>
+<header class="site-header">
+    <div class="header-inner">
+        <div class="brand-block">
+            <div class="brand-logo-badge">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="brand-meta">
+                <h1>NenaCare K3</h1>
+                <p>Sistem Pelaporan & Manajemen Keselamatan Kerja</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="login.php" class="btn btn-outline btn-sm">
+                <i class="bi bi-shield-lock"></i> Portal Petugas K3
+            </a>
+        </div>
+    </div>
 </header>
 
 <div class="main-container">
-    
+
     <aside>
-        <div class="glass-panel panel-form">
-            <h2 class="panel-heading"><i class="bi bi-broadcast-pin"></i> Lapor Insiden</h2>
+        <div class="card-panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-heading"><i class="bi bi-pencil-square"></i> Formulir Pelaporan Insiden</h2>
+                    <div class="panel-subtext">Sampaikan potensi bahaya atau insiden kerja secara presisi.</div>
+                </div>
+            </div>
+
+            <?php if (!empty($message)): ?>
+                <?= $message ?>
+                <div style="margin-bottom: 1.25rem;"></div>
+            <?php endif; ?>
+
             <form method="POST" action="" id="reportForm">
                 
                 <label class="checkbox-wrapper" for="is_anonim">
                     <input type="checkbox" id="is_anonim" name="is_anonim" value="1">
                     <div class="checkbox-label">
-                        🕵️ Laporkan Secara Anonim
-                        <small>Identitas Anda tidak akan dicatat</small>
+                        Laporkan Sebagai Anonim
+                        <small>Identitas nama dan peran Anda tidak akan direkam atau ditampilkan ke publik.</small>
                     </div>
                 </label>
 
                 <div class="form-group" id="group-nama">
-                    <label class="form-label">Nama Pelapor</label>
-                    <input type="text" name="nama_pelapor" id="nama_pelapor" class="form-control" required placeholder="Siapa nama Anda?">
+                    <label class="form-label">Nama Pelapor <span class="required-mark">*</span></label>
+                    <input type="text" name="nama_pelapor" id="nama_pelapor" class="form-control" required placeholder="Contoh: Budi Santoso">
                 </div>
+
                 <div class="form-group" id="group-tipe">
-                    <label class="form-label">Tipe Pelapor</label>
+                    <label class="form-label">Peran Pelapor <span class="required-mark">*</span></label>
                     <select name="tipe_pelapor" id="tipe_pelapor" class="form-control" required>
-                        <option value="Customer">🧑‍🤝‍🧑 Customer</option>
-                        <option value="Staf Kafe">👨‍🍳 Staf Kafe</option>
+                        <option value="Customer">Customer / Pelanggan</option>
+                        <option value="Staf Kafe">Staf Kafe / Operasional</option>
+                        <option value="Barista">Barista / Bar Floor</option>
+                        <option value="Dapur">Staf Dapur / Kitchen</option>
+                        <option value="Teknisi">Teknisi / Pemeliharaan Fasilitas</option>
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Kategori Insiden</label>
-                    <select name="kategori_masalah" class="form-control" required>
-                        <option value="Api & Gas">🔥 Api & Gas (LPG, Kompor)</option>
-                        <option value="Kelistrikan">⚡ Kelistrikan (Konslet, Kabel)</option>
-                        <option value="Lingkungan & Kebersihan">🧹 Lingkungan (Lantai licin, Asap)</option>
-                        <option value="Ergonomi & APD">🧤 Ergonomi & APD (Tertusuk, Luka)</option>
+                    <label class="form-label">Kategori Insiden <span class="required-mark">*</span></label>
+                    <select name="kategori_masalah" id="kategori_masalah" class="form-control" required>
+                        <option value="Api & Gas">Api & Bahan Bakar Gas (LPG, Kompor, Oven)</option>
+                        <option value="Kelistrikan">Kelistrikan (Konsleting, Kabel Terbuka, Panel Daya)</option>
+                        <option value="Lingkungan & Kebersihan">Lingkungan & Sanitasi (Lantai Licin, Tumpahan, Asap)</option>
+                        <option value="Ergonomi & APD">Ergonomi & APD (Cedera Benda Tajam, Luka Bakar, APD)</option>
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Lokasi Kejadian</label>
-                    <input type="text" name="lokasi_kejadian" class="form-control" required placeholder="Cth: Area Dapur Utama">
+                    <label class="form-label">Lokasi Kejadian <span class="required-mark">*</span></label>
+                    <input type="text" name="lokasi_kejadian" class="form-control" required placeholder="Contoh: Meja Bar Utama / Area Cuci Piring">
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Deskripsi Kejadian</label>
-                    <textarea name="deskripsi_kejadian" class="form-control" required placeholder="Jelaskan detail kejadian berbahaya yang Anda amati secara spesifik..."></textarea>
+                    <label class="form-label">Deskripsi Kejadian <span class="required-mark">*</span></label>
+                    <textarea name="deskripsi_kejadian" class="form-control" required placeholder="Uraikan kondisi berbahaya, waktu pengamatan, serta dampak fisik yang timbul..."></textarea>
+                    <span class="form-hint">Harap deskripsikan fakta kejadian secara objektif tanpa opini spekulatif.</span>
                 </div>
-                <button type="submit" class="btn-submit"><i class="bi bi-send-fill"></i> Kirim Laporan</button>
+
+                <button type="submit" class="btn btn-primary btn-submit">
+                    <i class="bi bi-send"></i> Kirim Laporan Insiden
+                </button>
             </form>
-            <?= $message ?>
         </div>
     </aside>
 
     <main>
-        <div class="glass-panel">
-            <h2 class="panel-heading"><i class="bi bi-activity"></i> Live Monitoring Feed</h2>
-            <div class="reports-grid">
+        <div class="card-panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-heading"><i class="bi bi-activity"></i> Log Pemantauan Insiden</h2>
+                    <div class="panel-subtext">Daftar rekam insiden keselamatan kerja yang dilaporkan secara langsung.</div>
+                </div>
+                <div>
+                    <span class="badge badge-rendah" id="reportCountBadge"><?= count($reports) ?> Data Tercatat</span>
+                </div>
+            </div>
+
+            <div class="feed-controls">
+                <div class="feed-tabs" id="categoryFilterTabs">
+                    <button type="button" class="feed-tab active" data-filter="all">Semua</button>
+                    <button type="button" class="feed-tab" data-filter="Api & Gas">Api & Gas</button>
+                    <button type="button" class="feed-tab" data-filter="Kelistrikan">Kelistrikan</button>
+                    <button type="button" class="feed-tab" data-filter="Lingkungan & Kebersihan">Lingkungan</button>
+                    <button type="button" class="feed-tab" data-filter="Ergonomi & APD">Ergonomi & APD</button>
+                </div>
+
+                <div class="feed-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="liveSearchInput" placeholder="Cari insiden, lokasi, isi...">
+                </div>
+            </div>
+
+            <div class="reports-grid" id="reportsGridContainer">
                 <?php if (empty($reports)): ?>
                     <div class="empty-state">
-                        <i class="bi bi-inbox-fill"></i>
-                        <p>Area Kafe aman. Belum ada rekam laporan saat ini.</p>
+                        <i class="bi bi-shield-check"></i>
+                        <p>Kondisi operasional kafe terpantau kondusif. Belum ada catatan insiden aktif saat ini.</p>
                     </div>
                 <?php else: ?>
                     <?php 
-                    $delay = 0;
                     foreach ($reports as $r): 
-                        $statusClass = 'status-' . strtolower(str_replace(' ', '-', $r['status']));
-                        
                         $prioBadge = 'badge-normal';
-                        if($r['prioritas'] == 'Tinggi') $prioBadge = 'badge-tinggi';
-                        else if($r['prioritas'] == 'Rendah') $prioBadge = 'badge-rendah';
+                        if ($r['prioritas'] === 'Tinggi') $prioBadge = 'badge-tinggi';
+                        elseif ($r['prioritas'] === 'Rendah') $prioBadge = 'badge-rendah';
+
+                        $statusBadge = 'badge-menunggu';
+                        if ($r['status'] === 'Diproses') $statusBadge = 'badge-diproses';
+                        elseif ($r['status'] === 'Selesai') $statusBadge = 'badge-selesai';
                         
                         $isAnonim = isset($r['is_anonim']) && $r['is_anonim'];
-                        $displayName = $isAnonim ? 'Anonim' : htmlspecialchars($r['nama_pelapor']);
-                        $displayType = $isAnonim ? 'Identitas Dirahasiakan' : htmlspecialchars($r['tipe_pelapor']);
+                        $displayName = $isAnonim ? 'Pelapor Anonim' : htmlspecialchars($r['nama_pelapor']);
+                        $displayType = $isAnonim ? 'Identitas Terlindungi' : htmlspecialchars($r['tipe_pelapor']);
 
-                        $delay += 0.1;
+                        $category = htmlspecialchars($r['kategori_masalah']);
+                        $location = htmlspecialchars($r['lokasi_kejadian']);
+                        $desc = htmlspecialchars($r['deskripsi_kejadian']);
+                        $advice = htmlspecialchars($r['saran_ai'] ?? 'Belum ada rekomendasi');
+                        $timeFormatted = date('d M Y, H:i', strtotime($r['waktu_lapor']));
                     ?>
-                        <a href="detail.php?id=<?= $r['id_laporan'] ?>" class="report-card-link">
-                        <div class="report-card <?= $statusClass ?>" style="animation-delay: <?= $delay ?>s">
-                            
-                            <div class="rc-header">
-                                <div class="rc-user">
-                                    <div class="rc-name"><i class="bi bi-person-fill"></i> <?= $displayName ?></div>
-                                    <div class="rc-type"><?= $displayType ?></div>
-                                </div>
-                                <div class="rc-status"><?= htmlspecialchars($r['status']) ?></div>
-                            </div>
-
-                            <div class="rc-body">
-                                <div class="rc-meta">
-                                    <div class="rc-meta-item"><i class="bi bi-geo-alt-fill"></i> <?= htmlspecialchars($r['lokasi_kejadian']) ?></div>
-                                    <div class="rc-meta-item"><i class="bi bi-tags-fill"></i> <?= htmlspecialchars($r['kategori_masalah']) ?></div>
-                                </div>
+                        <a href="detail.php?id=<?= $r['id_laporan'] ?>" class="report-card-link" data-category="<?= $category ?>" data-search="<?= strtolower($displayName . ' ' . $category . ' ' . $location . ' ' . $desc) ?>">
+                            <div class="report-card">
                                 
-                                <div class="rc-desc">
-                                    "<?= htmlspecialchars($r['deskripsi_kejadian']) ?>"
+                                <div class="rc-header">
+                                    <div>
+                                        <div class="rc-id-tag">#LAP-<?= str_pad($r['id_laporan'], 4, '0', STR_PAD_LEFT) ?></div>
+                                        <div class="rc-name">
+                                            <i class="bi <?= $isAnonim ? 'bi-shield-shaded' : 'bi-person' ?>"></i>
+                                            <?= $displayName ?>
+                                        </div>
+                                        <div class="rc-type"><?= $displayType ?></div>
+                                    </div>
+                                    <div class="rc-status-wrap">
+                                        <span class="badge <?= $statusBadge ?>"><?= htmlspecialchars($r['status']) ?></span>
+                                        <span class="badge <?= $prioBadge ?>">Prioritas <?= htmlspecialchars($r['prioritas']) ?></span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="rc-ai">
-                                <div class="rc-ai-header">
-                                    <span class="rc-ai-title"><i class="bi bi-robot"></i> AI Analyst</span>
-                                    <span class="badge <?= $prioBadge ?>"><?= htmlspecialchars($r['prioritas']) ?></span>
+                                <div class="rc-body">
+                                    <div class="rc-meta">
+                                        <div class="rc-meta-item">
+                                            <i class="bi bi-geo-alt"></i> <?= $location ?>
+                                        </div>
+                                        <div class="rc-meta-item">
+                                            <i class="bi bi-tag"></i> <?= $category ?>
+                                        </div>
+                                        <div class="rc-meta-item">
+                                            <i class="bi bi-clock"></i> <?= $timeFormatted ?>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="rc-desc">
+                                        "<?= $desc ?>"
+                                    </div>
                                 </div>
-                                <div class="rc-ai-text">
-                                    <?= htmlspecialchars($r['saran_ai']) ?>
+
+                                <div class="rc-ai">
+                                    <div class="rc-ai-header">
+                                        <span class="rc-ai-title">
+                                            <i class="bi bi-cpu"></i> Rekomendasi Keselamatan K3
+                                        </span>
+                                    </div>
+                                    <div class="rc-ai-text">
+                                        <?= $advice ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         </a>
                     <?php endforeach; ?>
                 <?php endif; ?>
+            </div>
+            <div id="noMatchState" class="empty-state" style="display: none; margin-top: 1rem;">
+                <i class="bi bi-funnel"></i>
+                <p>Tidak ditemukan insiden yang sesuai dengan kriteria filter atau pencarian.</p>
             </div>
         </div>
     </main>
@@ -217,6 +243,7 @@ $reports = $manager->getAllReports();
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Toggle anonymous report inputs
     const anonCheckbox = document.getElementById('is_anonim');
     const namaInput = document.getElementById('nama_pelapor');
     const tipeSelect = document.getElementById('tipe_pelapor');
@@ -232,15 +259,67 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (isAnon) {
             namaInput.value = '';
-            groupNama.style.opacity = '0.4';
-            groupTipe.style.opacity = '0.4';
+            groupNama.style.opacity = '0.35';
+            groupTipe.style.opacity = '0.35';
         } else {
             groupNama.style.opacity = '1';
             groupTipe.style.opacity = '1';
         }
     }
 
-    anonCheckbox.addEventListener('change', toggleAnonymous);
+    if (anonCheckbox) {
+        anonCheckbox.addEventListener('change', toggleAnonymous);
+    }
+
+    // Live Instant Search & Category Filter
+    const searchInput = document.getElementById('liveSearchInput');
+    const filterTabs = document.querySelectorAll('.feed-tab');
+    const cards = document.querySelectorAll('.report-card-link');
+    const noMatchState = document.getElementById('noMatchState');
+    const countBadge = document.getElementById('reportCountBadge');
+
+    let activeFilter = 'all';
+
+    function filterFeed() {
+        const query = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const cardCat = card.getAttribute('data-category');
+            const searchData = card.getAttribute('data-search') || '';
+
+            const matchCat = (activeFilter === 'all') || (cardCat === activeFilter);
+            const matchQuery = (query === '') || (searchData.indexOf(query) !== -1);
+
+            if (matchCat && matchQuery) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (noMatchState) {
+            noMatchState.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+        }
+
+        if (countBadge) {
+            countBadge.textContent = `${visibleCount} Menampilkan`;
+        }
+    }
+
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            filterTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            activeFilter = this.getAttribute('data-filter');
+            filterFeed();
+        });
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterFeed);
+    }
 });
 </script>
 

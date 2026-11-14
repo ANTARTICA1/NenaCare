@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $stats = $manager->getStatistics();
 
 $filters = [];
+if (!empty($_GET['q'])) $filters['q'] = trim($_GET['q']);
 if (!empty($_GET['status'])) $filters['status'] = $_GET['status'];
 if (!empty($_GET['kategori'])) $filters['kategori'] = $_GET['kategori'];
 if (!empty($_GET['prioritas'])) $filters['prioritas'] = $_GET['prioritas'];
@@ -38,29 +39,30 @@ if (!empty($_GET['tanggal_sampai'])) $filters['tanggal_sampai'] = $_GET['tanggal
 $reports = $manager->getFilteredReports($filters);
 
 $exportParams = http_build_query($filters);
-$exportUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
+$exportPdfUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
+$exportCsvUrl = 'export_csv.php' . ($exportParams ? '?' . $exportParams : '');
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — NenaCare Admin</title>
-    <meta name="description" content="Dashboard admin untuk monitoring dan manajemen laporan K3 Nena Cafe.">
+    <title>Konsol Pengawas K3 — NenaCare</title>
+    <meta name="description" content="Dashboard monitoring dan manajemen insiden keselamatan kerja K3 Nena Cafe.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
-<div class="shape shape-1"></div>
-<div class="shape shape-2"></div>
-
 <nav class="navbar">
-    <a href="admin.php" class="nav-brand"><i class="bi bi-shield-check"></i> NenaCare</a>
+    <a href="admin.php" class="nav-brand">
+        <i class="bi bi-shield-check"></i>
+        <span>NenaCare K3</span>
+    </a>
     <ul class="nav-links">
-        <li><a href="admin.php" class="active"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a></li>
-        <li><a href="index.php"><i class="bi bi-megaphone-fill"></i> Pelaporan</a></li>
+        <li><a href="admin.php" class="active"><i class="bi bi-grid-1x2"></i> Konsol Pemantauan</a></li>
+        <li><a href="index.php"><i class="bi bi-megaphone"></i> Portal Publik</a></li>
     </ul>
     <div class="nav-user">
         <div class="nav-user-info">
@@ -68,57 +70,82 @@ $exportUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
             <div class="nav-user-role"><?= htmlspecialchars($user['role']) ?></div>
         </div>
         <div class="nav-avatar"><?= strtoupper(substr($user['username'], 0, 1)) ?></div>
-        <a href="logout.php" class="btn btn-outline btn-sm" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+        <a href="logout.php" class="btn btn-outline btn-sm" title="Keluar"><i class="bi bi-box-arrow-right"></i></a>
     </div>
 </nav>
 
 <div class="page-header">
-    <h1 class="page-title"><i class="bi bi-grid-1x2-fill"></i> Dashboard K3</h1>
-    <p class="page-subtitle">Monitoring & manajemen laporan keselamatan kerja Nena Cafe</p>
+    <h1 class="page-title"><i class="bi bi-grid-1x2"></i> Konsol Pengawas K3</h1>
+    <p class="page-subtitle">Pusat kendali, verifikasi, dan audit keselamatan kerja operasional Nena Cafe</p>
 </div>
 
 <div class="admin-content">
 
+    <?php if (isset($_GET['deleted'])): ?>
+        <div class="alert-box success" style="margin-bottom: 1.5rem;">
+            <i class="bi bi-check-circle"></i> Berkas laporan insiden berhasil dihapus secara permanen dari sistem.
+        </div>
+    <?php endif; ?>
+
     <div class="stat-grid">
-        <div class="stat-card total" style="animation-delay: 0.1s">
-            <div class="stat-icon"><i class="bi bi-clipboard2-data-fill"></i></div>
+        <div class="stat-card total">
+            <div class="stat-card-header">
+                <span class="stat-label">Total Insiden</span>
+                <i class="bi bi-folder2-open stat-icon"></i>
+            </div>
             <div class="stat-number"><?= $stats['total'] ?></div>
-            <div class="stat-label">Total Laporan</div>
+            <span class="stat-note">Seluruh rekam data</span>
         </div>
-        <div class="stat-card menunggu" style="animation-delay: 0.2s">
-            <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="stat-card menunggu">
+            <div class="stat-card-header">
+                <span class="stat-label">Menunggu Tindakan</span>
+                <i class="bi bi-clock stat-icon"></i>
+            </div>
             <div class="stat-number"><?= $stats['menunggu'] ?></div>
-            <div class="stat-label">Menunggu</div>
+            <span class="stat-note">Perlu peninjauan</span>
         </div>
-        <div class="stat-card diproses" style="animation-delay: 0.3s">
-            <div class="stat-icon"><i class="bi bi-gear-fill"></i></div>
+        <div class="stat-card diproses">
+            <div class="stat-card-header">
+                <span class="stat-label">Sedang Ditangani</span>
+                <i class="bi bi-arrow-repeat stat-icon"></i>
+            </div>
             <div class="stat-number"><?= $stats['diproses'] ?></div>
-            <div class="stat-label">Diproses</div>
+            <span class="stat-note">Dalam investigasi</span>
         </div>
-        <div class="stat-card selesai" style="animation-delay: 0.4s">
-            <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="stat-card selesai">
+            <div class="stat-card-header">
+                <span class="stat-label">Selesai / Teratasi</span>
+                <i class="bi bi-check2-circle stat-icon"></i>
+            </div>
             <div class="stat-number"><?= $stats['selesai'] ?></div>
-            <div class="stat-label">Selesai</div>
+            <span class="stat-note">Rasio: <?= $stats['persen_selesai'] ?? 0 ?>% tuntas</span>
         </div>
-        <div class="stat-card tinggi" style="animation-delay: 0.5s">
-            <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <div class="stat-card tinggi">
+            <div class="stat-card-header">
+                <span class="stat-label">Prioritas Tinggi</span>
+                <i class="bi bi-exclamation-octagon stat-icon"></i>
+            </div>
             <div class="stat-number"><?= $stats['tinggi'] ?></div>
-            <div class="stat-label">Prioritas Tinggi</div>
+            <span class="stat-note">Bahaya kritis</span>
         </div>
     </div>
 
     <div class="chart-grid">
         <div class="chart-card">
-            <h3><i class="bi bi-pie-chart-fill"></i> Distribusi Status</h3>
-            <canvas id="statusChart"></canvas>
+            <h3><i class="bi bi-pie-chart"></i> Distribusi Status Insiden</h3>
+            <canvas id="statusChart" height="200"></canvas>
         </div>
         <div class="chart-card">
-            <h3><i class="bi bi-bar-chart-fill"></i> Laporan per Kategori</h3>
-            <canvas id="kategoriChart"></canvas>
+            <h3><i class="bi bi-bar-chart"></i> Distribusi Berdasarkan Kategori Bahaya</h3>
+            <canvas id="kategoriChart" height="200"></canvas>
         </div>
     </div>
 
     <form method="GET" action="admin.php" class="filter-bar" id="filterForm">
+        <div class="filter-group" style="min-width: 200px;">
+            <label>Pencarian Kata Kunci</label>
+            <input type="text" name="q" class="form-control" placeholder="Pelapor, lokasi, deskripsi..." value="<?= htmlspecialchars($filters['q'] ?? '') ?>">
+        </div>
         <div class="filter-group">
             <label>Status</label>
             <select name="status" class="form-control">
@@ -156,37 +183,46 @@ $exportUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
             <input type="date" name="tanggal_sampai" class="form-control" value="<?= htmlspecialchars($filters['tanggal_sampai'] ?? '') ?>">
         </div>
         <div class="filter-actions">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel-fill"></i> Filter</button>
-            <a href="admin.php" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
-            <a href="<?= $exportUrl ?>" class="btn btn-accent" target="_blank"><i class="bi bi-file-earmark-pdf-fill"></i> Export PDF</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Terapkan</button>
+            <a href="admin.php" class="btn btn-outline" title="Reset filter"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+            <a href="<?= $exportPdfUrl ?>" class="btn btn-accent" target="_blank" title="Unduh laporan PDF"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+            <a href="<?= $exportCsvUrl ?>" class="btn btn-accent" target="_blank" title="Unduh data CSV"><i class="bi bi-file-earmark-spreadsheet"></i> CSV</a>
         </div>
     </form>
 
-    <div class="glass-panel" style="padding: 0; overflow: hidden;">
-        <div style="padding: 1.5rem 1.5rem 0;">
-            <h2 class="panel-heading" style="margin-bottom: 0;"><i class="bi bi-table"></i> Data Laporan <span style="font-weight: 400; font-size: 0.9rem; color: var(--text-muted);">(<?= count($reports) ?> data)</span></h2>
+    <div class="card-panel" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-default);">
+            <h2 class="panel-heading" style="margin-bottom: 0;">
+                <i class="bi bi-table"></i> Log Rekam Insiden
+            </h2>
+            <span class="badge badge-rendah"><?= count($reports) ?> Data Ditemukan</span>
         </div>
         <div class="table-wrapper" style="border: none; border-radius: 0;">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>ID Insiden</th>
                         <th>Pelapor</th>
                         <th>Kategori</th>
                         <th>Lokasi</th>
                         <th>Prioritas</th>
                         <th>Status</th>
-                        <th>Waktu</th>
-                        <th>Aksi</th>
+                        <th>Waktu Kejadian</th>
+                        <th style="text-align: right;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($reports)): ?>
-                        <tr><td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);"><i class="bi bi-inbox"></i> Tidak ada data ditemukan</td></tr>
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                                <i class="bi bi-inbox" style="font-size: 1.75rem; display: block; margin-bottom: 0.5rem;"></i>
+                                Tidak ada data insiden yang sesuai dengan parameter filter.
+                            </td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($reports as $r): 
                             $isAnonim = isset($r['is_anonim']) && $r['is_anonim'];
-                            $displayName = $isAnonim ? 'Anonim' : htmlspecialchars($r['nama_pelapor'] ?? '-');
+                            $displayName = $isAnonim ? 'Pelapor Anonim' : htmlspecialchars($r['nama_pelapor'] ?? '-');
                             
                             $prioBadge = 'badge-normal';
                             if ($r['prioritas'] === 'Tinggi') $prioBadge = 'badge-tinggi';
@@ -197,27 +233,36 @@ $exportUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
                             elseif ($r['status'] === 'Selesai') $statusBadge = 'badge-selesai';
                         ?>
                         <tr>
-                            <td><strong>#<?= $r['id_laporan'] ?></strong></td>
-                            <td><?= $displayName ?></td>
-                            <td><?= htmlspecialchars($r['kategori_masalah']) ?></td>
+                            <td class="mono-cell">#LAP-<?= str_pad($r['id_laporan'], 4, '0', STR_PAD_LEFT) ?></td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.4rem; font-weight: 600;">
+                                    <i class="bi <?= $isAnonim ? 'bi-shield-shaded' : 'bi-person' ?>" style="color: var(--text-muted);"></i>
+                                    <?= $displayName ?>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-rendah"><?= htmlspecialchars($r['kategori_masalah']) ?></span>
+                            </td>
                             <td><?= htmlspecialchars($r['lokasi_kejadian']) ?></td>
                             <td>
                                 <select class="status-select" data-id="<?= $r['id_laporan'] ?>" onchange="updatePriority(this)">
-                                    <option value="Tinggi" <?= $r['prioritas'] === 'Tinggi' ? 'selected' : '' ?>>🔴 Tinggi</option>
-                                    <option value="Normal" <?= $r['prioritas'] === 'Normal' ? 'selected' : '' ?>>🟡 Normal</option>
-                                    <option value="Rendah" <?= $r['prioritas'] === 'Rendah' ? 'selected' : '' ?>>🟢 Rendah</option>
+                                    <option value="Tinggi" <?= $r['prioritas'] === 'Tinggi' ? 'selected' : '' ?>>Tinggi</option>
+                                    <option value="Normal" <?= $r['prioritas'] === 'Normal' ? 'selected' : '' ?>>Normal</option>
+                                    <option value="Rendah" <?= $r['prioritas'] === 'Rendah' ? 'selected' : '' ?>>Rendah</option>
                                 </select>
                             </td>
                             <td>
                                 <select class="status-select" data-id="<?= $r['id_laporan'] ?>" onchange="updateStatus(this)">
-                                    <option value="Menunggu" <?= $r['status'] === 'Menunggu' ? 'selected' : '' ?>>⏳ Menunggu</option>
-                                    <option value="Diproses" <?= $r['status'] === 'Diproses' ? 'selected' : '' ?>>🔧 Diproses</option>
-                                    <option value="Selesai" <?= $r['status'] === 'Selesai' ? 'selected' : '' ?>>✅ Selesai</option>
+                                    <option value="Menunggu" <?= $r['status'] === 'Menunggu' ? 'selected' : '' ?>>Menunggu</option>
+                                    <option value="Diproses" <?= $r['status'] === 'Diproses' ? 'selected' : '' ?>>Diproses</option>
+                                    <option value="Selesai" <?= $r['status'] === 'Selesai' ? 'selected' : '' ?>>Selesai</option>
                                 </select>
                             </td>
-                            <td style="white-space: nowrap; font-size: 0.85rem; color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($r['waktu_lapor'])) ?></td>
-                            <td>
-                                <a href="detail.php?id=<?= $r['id_laporan'] ?>" class="btn btn-primary btn-sm"><i class="bi bi-eye-fill"></i> Detail</a>
+                            <td class="mono-cell"><?= date('d/m/Y H:i', strtotime($r['waktu_lapor'])) ?></td>
+                            <td style="text-align: right;">
+                                <a href="detail.php?id=<?= $r['id_laporan'] ?>" class="btn btn-outline btn-sm">
+                                    <i class="bi bi-eye"></i> Detail
+                                </a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -230,12 +275,16 @@ $exportUrl = 'export_pdf.php' . ($exportParams ? '?' . $exportParams : '');
 </div>
 
 <script>
+// Chart.js Anti-Slop Strict Styling
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
 const statusData = <?= json_encode($stats['by_status']) ?>;
 const statusLabels = statusData.map(d => d.status);
 const statusValues = statusData.map(d => parseInt(d.c));
 const statusColors = statusLabels.map(s => {
     if (s === 'Menunggu') return '#94a3b8';
-    if (s === 'Diproses') return '#f59e0b';
+    if (s === 'Diproses') return '#0ea5e9';
     if (s === 'Selesai') return '#10b981';
     return '#64748b';
 });
@@ -247,9 +296,9 @@ new Chart(document.getElementById('statusChart'), {
         datasets: [{
             data: statusValues,
             backgroundColor: statusColors,
-            borderColor: 'rgba(10, 15, 29, 0.8)',
-            borderWidth: 3,
-            hoverOffset: 8
+            borderColor: '#0f172a',
+            borderWidth: 2,
+            hoverOffset: 4
         }]
     },
     options: {
@@ -257,10 +306,10 @@ new Chart(document.getElementById('statusChart'), {
         plugins: {
             legend: {
                 position: 'bottom',
-                labels: { color: '#94a3b8', font: { family: 'Outfit', size: 13 }, padding: 16 }
+                labels: { color: '#94a3b8', font: { size: 12 }, padding: 14 }
             }
         },
-        cutout: '60%'
+        cutout: '68%'
     }
 });
 
@@ -273,23 +322,13 @@ new Chart(document.getElementById('kategoriChart'), {
     data: {
         labels: katLabels,
         datasets: [{
-            label: 'Jumlah Laporan',
+            label: 'Jumlah Insiden',
             data: katValues,
-            backgroundColor: [
-                'rgba(255, 8, 68, 0.6)',
-                'rgba(79, 172, 254, 0.6)',
-                'rgba(16, 185, 129, 0.6)',
-                'rgba(245, 158, 11, 0.6)'
-            ],
-            borderColor: [
-                'rgba(255, 8, 68, 0.9)',
-                'rgba(79, 172, 254, 0.9)',
-                'rgba(16, 185, 129, 0.9)',
-                'rgba(245, 158, 11, 0.9)'
-            ],
+            backgroundColor: '#0284c7',
+            borderColor: '#0369a1',
             borderWidth: 1,
-            borderRadius: 8,
-            barThickness: 40
+            borderRadius: 4,
+            barThickness: 28
         }]
     },
     options: {
@@ -300,11 +339,11 @@ new Chart(document.getElementById('kategoriChart'), {
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { color: '#94a3b8', font: { family: 'Outfit' }, stepSize: 1 },
-                grid: { color: 'rgba(255,255,255,0.04)' }
+                ticks: { color: '#94a3b8', stepSize: 1 },
+                grid: { color: 'rgba(255, 255, 255, 0.04)' }
             },
             x: {
-                ticks: { color: '#94a3b8', font: { family: 'Outfit', size: 11 }, maxRotation: 45 },
+                ticks: { color: '#94a3b8', font: { size: 11 }, maxRotation: 30 },
                 grid: { display: false }
             }
         }
@@ -314,6 +353,7 @@ new Chart(document.getElementById('kategoriChart'), {
 function updateStatus(selectEl) {
     const id = selectEl.dataset.id;
     const status = selectEl.value;
+    const originalBorder = selectEl.style.borderColor;
 
     fetch('admin.php', {
         method: 'POST',
@@ -323,18 +363,19 @@ function updateStatus(selectEl) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            selectEl.style.boxShadow = '0 0 12px rgba(0, 242, 254, 0.4)';
-            setTimeout(() => { selectEl.style.boxShadow = 'none'; }, 1000);
+            selectEl.style.borderColor = 'var(--success)';
+            setTimeout(() => { selectEl.style.borderColor = originalBorder; }, 1200);
         } else {
-            alert('Gagal mengubah status.');
+            alert('Gagal memperbarui status insiden.');
         }
     })
-    .catch(() => alert('Error koneksi.'));
+    .catch(() => alert('Terjadi gangguan jaringan saat memperbarui status.'));
 }
 
 function updatePriority(selectEl) {
     const id = selectEl.dataset.id;
     const priority = selectEl.value;
+    const originalBorder = selectEl.style.borderColor;
 
     fetch('admin.php', {
         method: 'POST',
@@ -344,13 +385,13 @@ function updatePriority(selectEl) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            selectEl.style.boxShadow = '0 0 12px rgba(0, 242, 254, 0.4)';
-            setTimeout(() => { selectEl.style.boxShadow = 'none'; }, 1000);
+            selectEl.style.borderColor = 'var(--success)';
+            setTimeout(() => { selectEl.style.borderColor = originalBorder; }, 1200);
         } else {
-            alert('Gagal mengubah prioritas.');
+            alert('Gagal memperbarui tingkat prioritas.');
         }
     })
-    .catch(() => alert('Error koneksi.'));
+    .catch(() => alert('Terjadi gangguan jaringan saat memperbarui prioritas.'));
 }
 </script>
 
